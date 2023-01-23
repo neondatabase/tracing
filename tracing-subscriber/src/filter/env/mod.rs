@@ -633,7 +633,11 @@ impl EnvFilter {
                     by_cs.insert(metadata.callsite(), matcher);
                     return Interest::always();
                 }
-            } else if *metadata.level() <= self.dynamics.max_level {
+            } else if self
+                .dynamics
+                .directives()
+                .any(|directive| directive.level < *metadata.level())
+            {
                 // Any dynamic could turn this metadata off
                 return Interest::sometimes();
             }

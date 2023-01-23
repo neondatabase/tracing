@@ -244,6 +244,7 @@ fn method_name_resolution() {
 fn more_specific_dynamic_directives_override_static_directives() {
     let filter: EnvFilter = "info,my_target[my_span]=warn".parse().unwrap();
     let (subscriber, handle) = subscriber::mock()
+        .event(event::mock().at_level(Level::INFO).with_target("env_filter"))
         .enter(span::mock().at_level(Level::INFO))
         .event(
             event::mock()
@@ -257,10 +258,10 @@ fn more_specific_dynamic_directives_override_static_directives() {
     let subscriber: Layered<_, _> = subscriber.with(filter);
 
     with_default(subscriber, || {
-        // tracing::info!("should be logged");
+        tracing::info!("regular event should be logged");
         let _info = tracing::info_span!(target: "my_target", "my_span").entered();
-        tracing::info!("should be ignored");
-        tracing::warn!("should be logged");
+        tracing::info!("span INFO event should be ignored");
+        tracing::warn!("span WARN event should be logged");
     });
 
     handle.assert_finished();
